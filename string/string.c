@@ -1148,6 +1148,61 @@ uint64_t parse_int_u64(const char* str, size_t size){
     return result;
 }
 
+uint64_t strtoul(const char *s, char **endptr, int base) {
+    const char *orig = s;
+    if (!s) {
+        if (endptr) *endptr = 0;
+        return 0;
+    }
+
+    while (is_whitespace(*s)) s++;
+
+    bool neg = false;
+    if (*s == '+' || *s == '-') {
+        neg = *s == '-';
+        s++;
+    }
+
+    if (base && (base < 2 || base > 36)) {
+        if (endptr) *endptr = (char*)orig;
+        return 0;
+    }
+
+    if (base == 0) {
+        if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X') && hex_val(s[2]) >= 0) {
+            base = 16;
+            s += 2;
+        } else if (s[0] == '0')base = 8;
+        else base = 10;
+    } else if (base == 16 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X') && hex_val(s[2]) >= 0) s += 2;
+
+    const char *start = s;
+    uint64_t value = 0;
+    uint64_t max = (uint64_t)-1;
+    bool overflow = false;
+
+    while (*s) {
+        int digit;
+        if (is_digit(*s)) digit = *s - '0';
+        else if (is_alpha(*s)) digit = tolower(*s) - 'a' + 10;
+        else break;
+        if (digit >= base) break;
+
+        if (value > (max - digit) / base) overflow = true;
+        else if (!overflow) value = value * base + digit;
+        s++;
+    }
+
+    if (s == start) {
+        if (endptr) *endptr = (char*)orig;
+        return 0;
+    }
+
+    if (endptr) *endptr = (char*)s;
+    if (overflow) return max;
+    return neg ? (uint64_t)(-value) : value;
+}
+
 float parse_float(char *input,size_t length){
     char *p = (char*)seek_to(input, '.');
     size_t l1 = p-input;
@@ -1235,14 +1290,24 @@ char* strncpy(char* dst, const char* src, size_t cap){
 }
 
 bool parse_uint32_dec(const char *s, uint32_t *out) {
-    if (!s || !*s) return false;
-    uint64_t v = parse_int_u64(s, UINT32_MAX);
-    if (v == 0 && s[0] != '0') return false;
+    if (!s || !*s || !out || !is_digit(*s)) return false;
+    char *end = 0;
+    uint64_t v = strtoul(s, &end, 10);
+    if (end == s) return false;
     if (v > UINT32_MAX) return false;
     *out = (uint32_t)v;
     return true;
 }
 
+bool parse_uint32_dec_exact(const char *s, uint32_t *out) {
+    if (!s || !*s || !out || !is_digit(*s)) return false;
+    char *end = 0;
+    uint64_t v = strtoul(s, &end, 10);
+    if (end == s || *end) return false;
+    if (v > UINT32_MAX) return false;
+    *out = (uint32_t)v;
+    return true;
+}
 
 char* strcasestr(const char* haystack, const char* needle) {
     if (!haystack) return 0;

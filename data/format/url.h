@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "string/string.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,7 +19,7 @@ typedef struct {
 } ParsedURL;
 
 ParsedURL parse_url(const char *buf, uint32_t len);
-ParsedURL parse_url_z(const char *buf);
+string url_request_path(const ParsedURL *url, const string *base_path);
 
 #ifdef __cplusplus
 }

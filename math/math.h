@@ -12,7 +12,7 @@ extern "C" {
 
 static inline i64 powi(i64 n, i64 e){
     if (e == 1) return n;
-    if (e == 2) return n << e;
+    if (e == 2) return n * n;
     i64 acc = n;
     for (i64 i = 1; i < e; i++)
         acc *= n;

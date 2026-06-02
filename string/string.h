@@ -96,6 +96,7 @@ int count_occurrences(const char* str, char c);
 uint64_t parse_hex_u64(const char* str, size_t size);
 uint64_t parse_int_u64(const char* str, size_t size);
 int64_t parse_int64(const char* str, size_t size);
+uint64_t strtoul(const char *s, char **endptr, int base);
 float parse_float(char *input,size_t length);
 
 bool utf16tochar(uint16_t* str_in, char* out_str, size_t max_len);
@@ -110,6 +111,7 @@ void string_append_bytes(string *dest, const void *buf, uint32_t len);
 const char* seek_to(const char *string, char character);
 char* strncpy(char* dst, const char* src, size_t cap);
 bool parse_uint32_dec(const char *s, uint32_t *out);
+bool parse_uint32_dec_exact(const char *s, uint32_t *out);
 char* strcasestr(const char* haystack, const char* needle);
 
 string string_replace_character(char* original, char symbol, char *value);

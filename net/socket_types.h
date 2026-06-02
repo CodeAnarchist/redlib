@@ -10,7 +10,9 @@ typedef enum {
     BIND_L3 = 0,
     BIND_L2 = 1,
     BIND_IP = 2,
-    BIND_ANY = 3
+    BIND_ANY = 3,
+    BIND_ANY4 = 4,
+    BIND_ANY6 = 5
 } SockBindKind;
 
 typedef enum {
@@ -27,6 +29,8 @@ typedef enum {
     SOCK_OPT_MCAST_JOIN = 1u << 5
 } SockOptFlags;
 
+#define SOCK_MAX_MCAST_GROUPS 8
+
 // TODO add TCP_NODELAY to avoid nagle
 // TODO add more standard sock opt anyway
 typedef enum {
@@ -41,8 +45,8 @@ typedef struct SocketExtraOptions {
     uint32_t buf_size;
     uint32_t keepalive_ms;
     uint8_t ttl;
-    ip_version_t mcast_ver;
-    uint8_t mcast_group[16];
+    uint8_t mcast_count;
+    net_l4_endpoint mcast_groups[SOCK_MAX_MCAST_GROUPS]; 
 } SocketExtraOptions;
 
 typedef struct SockBindSpec{

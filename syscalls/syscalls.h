@@ -61,8 +61,8 @@ extern int32_t socket_bind(SocketHandle *handle, ip_version_t ip_version, uint16
 extern int32_t socket_connect(SocketHandle *handle, SockDstKind dst_kind, void* dst, uint16_t port);
 extern int32_t socket_listen(SocketHandle *handle);
 extern bool socket_accept(SocketHandle *spec);
-extern size_t socket_send(SocketHandle *handle, SockDstKind dst_kind, const void* dst, uint16_t port, void *packet, size_t size);
-extern bool socket_receive(SocketHandle *handle, void *packet, size_t size, net_l4_endpoint* out_src);
+extern int64_t socket_send(SocketHandle *handle, SockDstKind dst_kind, const void* dst, uint16_t port, void *packet, size_t size);
+extern int64_t socket_receive(SocketHandle *handle, void *packet, size_t size, net_l4_endpoint* out_src);
 extern int32_t socket_close(SocketHandle *handle);
 
 extern FS_RESULT openf(const char* path, file* descriptor);
