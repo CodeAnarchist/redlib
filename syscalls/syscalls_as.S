@@ -40,8 +40,11 @@ syscall_def socket_connect, SOCKET_CONNECT_CODE
 syscall_def socket_listen, SOCKET_LISTEN_CODE
 syscall_def socket_accept, SOCKET_ACCEPT_CODE
 syscall_def socket_send, SOCKET_SEND_CODE
+syscall_def socket_send_to, SOCKET_SENDTO_CODE
 syscall_def socket_receive, SOCKET_RECEIVE_CODE
 syscall_def socket_close, SOCKET_CLOSE_CODE
+syscall_def socket_set_option, SOCKET_SETOPT_CODE
+syscall_def socket_get_option, SOCKET_GETOPT_CODE
 
 syscall_def openf,      FILE_OPEN_CODE
 syscall_def readf,      FILE_READ_CODE

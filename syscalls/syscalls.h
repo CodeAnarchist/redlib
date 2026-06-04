@@ -58,12 +58,15 @@ extern uint64_t get_time();
 
 extern bool socket_create(Socket_Role role, protocol_t protocol, const SocketExtraOptions* extra, SocketHandle *out_handle);
 extern int32_t socket_bind(SocketHandle *handle, ip_version_t ip_version, uint16_t port);
-extern int32_t socket_connect(SocketHandle *handle, SockDstKind dst_kind, void* dst, uint16_t port);
+extern int32_t socket_connect(SocketHandle *handle, const net_l4_endpoint* dst);
 extern int32_t socket_listen(SocketHandle *handle);
-extern bool socket_accept(SocketHandle *spec);
-extern int64_t socket_send(SocketHandle *handle, SockDstKind dst_kind, const void* dst, uint16_t port, void *packet, size_t size);
+extern bool socket_accept(SocketHandle *handle, SocketHandle* out_child);
+extern int64_t socket_send(SocketHandle *handle, void *packet, size_t size);
+extern int64_t socket_send_to(SocketHandle *handle, const net_l4_endpoint* dst, void *packet, size_t size);
 extern int64_t socket_receive(SocketHandle *handle, void *packet, size_t size, net_l4_endpoint* out_src);
 extern int32_t socket_close(SocketHandle *handle);
+extern int32_t socket_set_option(SocketHandle *handle, int32_t opt, const void* value, uint32_t len);
+extern int32_t socket_get_option(SocketHandle *handle, int32_t opt, void* value, uint32_t* len);
 
 extern FS_RESULT openf(const char* path, file* descriptor);
 extern size_t readf(file *descriptor, char* buf, size_t size);

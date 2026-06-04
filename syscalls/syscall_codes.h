@@ -26,6 +26,7 @@
 
 #define GET_TIME_CODE               40
 
+#define SOCKET_SENDTO_CODE          49
 #define SOCKET_CREATE_CODE          50
 #define SOCKET_BIND_CODE            51
 #define SOCKET_CONNECT_CODE         52
@@ -34,6 +35,8 @@
 #define SOCKET_SEND_CODE            55
 #define SOCKET_RECEIVE_CODE         56
 #define SOCKET_CLOSE_CODE           57
+#define SOCKET_SETOPT_CODE          58
+#define SOCKET_GETOPT_CODE          59
 
 #define FILE_OPEN_CODE              60
 #define FILE_READ_CODE              61

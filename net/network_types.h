@@ -18,8 +18,12 @@ typedef struct __attribute__((aligned(8))) net_l4_endpoint {
 } net_l4_endpoint;
 
 typedef enum {
-    PROTO_UDP = 0,
-    PROTO_TCP = 1
+    PROTO_NONE = 0,
+    PROTO_ICMP = 1,
+    PROTO_IGMP = 2,
+    PROTO_TCP = 6,
+    PROTO_UDP = 17,
+    PROTO_ICMPV6 = 58
 } protocol_t;
 
 typedef enum Socket_Role {
@@ -28,7 +32,8 @@ typedef enum Socket_Role {
 } Socket_Role;
 
 typedef struct SocketHandle {
-    uint16_t id;
+    uint32_t id;
+    uint32_t generation;
     net_l4_endpoint connection;
     protocol_t protocol;
 } SocketHandle;
