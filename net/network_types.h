@@ -26,17 +26,7 @@ typedef enum {
     PROTO_ICMPV6 = 58
 } protocol_t;
 
-typedef enum Socket_Role {
-    SOCKET_CLIENT,
-    SOCKET_SERVER,
-} Socket_Role;
-
-typedef struct SocketHandle {
-    uint32_t id;
-    uint32_t generation;
-    net_l4_endpoint connection;
-    protocol_t protocol;
-} SocketHandle;
+typedef uint64_t socket_handle_t;
 
 typedef enum {
     IP_TX_AUTO = 0,

@@ -56,17 +56,17 @@ extern uint32_t gpu_char_size(uint32_t scale);
 
 extern uint64_t get_time();
 
-extern bool socket_create(Socket_Role role, protocol_t protocol, const SocketExtraOptions* extra, SocketHandle *out_handle);
-extern int32_t socket_bind(SocketHandle *handle, ip_version_t ip_version, uint16_t port);
-extern int32_t socket_connect(SocketHandle *handle, const net_l4_endpoint* dst);
-extern int32_t socket_listen(SocketHandle *handle);
-extern bool socket_accept(SocketHandle *handle, SocketHandle* out_child);
-extern int64_t socket_send(SocketHandle *handle, void *packet, size_t size);
-extern int64_t socket_send_to(SocketHandle *handle, const net_l4_endpoint* dst, void *packet, size_t size);
-extern int64_t socket_receive(SocketHandle *handle, void *packet, size_t size, net_l4_endpoint* out_src);
-extern int32_t socket_close(SocketHandle *handle);
-extern int32_t socket_set_option(SocketHandle *handle, int32_t opt, const void* value, uint32_t len);
-extern int32_t socket_get_option(SocketHandle *handle, int32_t opt, void* value, uint32_t* len);
+extern socket_handle_t socket_create(protocol_t protocol, const SocketExtraOptions* extra);
+extern int32_t socket_bind(socket_handle_t handle, const SockBindSpec* spec, uint16_t port);
+extern int32_t socket_connect(socket_handle_t handle, const net_l4_endpoint* dst);
+extern int32_t socket_listen(socket_handle_t handle, int32_t backlog);
+extern socket_handle_t socket_accept(socket_handle_t handle);
+extern int64_t socket_send(socket_handle_t handle, void *packet, size_t size);
+extern int64_t socket_send_to(socket_handle_t handle, const net_l4_endpoint* dst, void *packet, size_t size);
+extern int64_t socket_receive(socket_handle_t handle, void *packet, size_t size, net_l4_endpoint* out_src);
+extern int32_t socket_close(socket_handle_t handle);
+extern int32_t socket_set_option(socket_handle_t handle, int32_t opt, const void* value, uint32_t len);
+extern int32_t socket_get_option(socket_handle_t handle, int32_t opt, void* value, uint32_t* len);
 
 extern FS_RESULT openf(const char* path, file* descriptor);
 extern size_t readf(file *descriptor, char* buf, size_t size);

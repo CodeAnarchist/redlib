@@ -17,6 +17,7 @@ extern "C" {
 #define SOCK_ERR_STATE      -8
 #define SOCK_ERR_DNS        -9
 #define SOCK_ERR_UNSUP      -10
+#define SOCK_ERR_WOULDBLOCK -11
 
 typedef enum {
     BIND_L3 = 0,
@@ -39,6 +40,8 @@ typedef enum {
     SOCK_OPT_SEND_BUF_SIZE = 1u << 8,
     SOCK_OPT_TCP_NO_DELAY = 1u << 9,
     SOCK_OPT_KEEPALIVE_INTERVAL = 1u << 10,
+    SOCK_OPT_MCAST_LEAVE = 1u << 11,
+    SOCK_OPT_BROADCAST_ALLOWED = 1u << 12,
 } SockOptFlags;
 
 typedef enum{
@@ -47,8 +50,6 @@ typedef enum{
     SOCKET_SPECIAL_SET = 2,
     SOCKET_SPECIAL_PACKET = 3
 } SocketSpecialKind;
-
-#define SOCK_MAX_MCAST_GROUPS 8
 
 typedef enum {
     SOCK_DBG_LOW = 0,
@@ -67,7 +68,7 @@ typedef struct SocketExtraOptions {
     uint8_t ttl;
     SocketSpecialKind special_kind; //TODO with PROTO_NONE select RAW SET or L2 packet sockets here
     uint8_t mcast_count;
-    net_l4_endpoint mcast_groups[SOCK_MAX_MCAST_GROUPS]; 
+    const net_l4_endpoint* mcast_groups;
 } SocketExtraOptions;
 
 typedef struct SockBindSpec{
