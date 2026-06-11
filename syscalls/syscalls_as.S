@@ -10,12 +10,11 @@
 .endm
 
 #ifndef KERNEL
-syscall_def malloc, MALLOC_CODE
-syscall_def free_sized, FREE_CODE
 syscall_def page_alloc, PALLOC_CODE
 syscall_def page_free, PFREE_CODE
 
 syscall_def printl, PRINTL_CODE
+syscall_def serial_transmit, SERIAL_TRANS_CODE
 
 syscall_def read_key, READ_KEY_CODE
 syscall_def read_event, READ_EVENT_CODE
