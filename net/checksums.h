@@ -4,7 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-uint16_t checksum16(const uint16_t *data, size_t len);
+uint16_t checksum16(const void *data, size_t len);
 
 uint16_t checksum16_pipv4(uint32_t src_ip,
                         uint32_t dst_ip,

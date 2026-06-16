@@ -1,8 +1,10 @@
 #include "checksums.h"
 
-uint16_t checksum16(const uint16_t *data, size_t len) {
+uint16_t checksum16(const void *data, size_t len) {
+    const uint8_t *p = (const uint8_t*)data;
     uint32_t sum = 0;
-    for (size_t i = 0; i < len; i++) sum += data[i];
+    for (size_t i = 0; i + 1 < len; i += 2) sum += ((p[i] << 8) | p[i + 1]);
+    if (len & 1) sum += (uint32_t)(p[len - 1] << 8);
     while (sum >> 16) sum = (sum & 0xFFFF) + (sum >> 16);
     return (uint16_t)~sum;
 }
@@ -22,15 +24,9 @@ uint16_t checksum16_pipv4(uint32_t src_ip,
     sum += protocol;
     sum += length;
 
-    for (uint16_t i = 0; i + 1 < length; i += 2)
-        sum += (payload[i] << 8) | payload[i + 1];
-
-    if (length & 1)
-        sum += payload[length - 1] << 8;
-
-    while (sum >> 16)
-        sum = (sum & 0xFFFF) + (sum >> 16);
-
+    for (uint16_t i = 0; i + 1 < length; i += 2) sum += ((payload[i] << 8) | payload[i + 1]);
+    if (length & 1) sum += (payload[length - 1] << 8);
+    while (sum >> 16) sum = (sum & 0xFFFF) + (sum >> 16);
     return (uint16_t)~sum;
 }
 
