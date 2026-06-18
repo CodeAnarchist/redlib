@@ -58,7 +58,7 @@ extern uint32_t gpu_char_size(uint32_t scale);
 
 extern uint64_t get_time();
 
-extern socket_handle_t socket_create(protocol_t protocol, const SocketExtraOptions* extra);
+extern socket_handle_t socket_create(protocol_t protocol, const SocketOptions* extra);
 extern int32_t socket_bind(socket_handle_t handle, const SockBindSpec* spec, uint16_t port);
 extern int32_t socket_connect(socket_handle_t handle, const net_l4_endpoint* dst);
 extern int32_t socket_listen(socket_handle_t handle, int32_t backlog);

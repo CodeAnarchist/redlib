@@ -44,6 +44,35 @@ typedef enum {
     SOCK_OPT_BROADCAST_ALLOWED = 1u << 12,
 } SockOptFlags;
 
+typedef enum {
+    SOCK_GET_PROTOCOL = 1000,
+    SOCK_GET_OWNER_PID,
+    SOCK_GET_BOUND,
+    SOCK_GET_CONNECTED,
+    SOCK_GET_LISTENING,
+    SOCK_GET_LOCAL_PORT,
+    SOCK_GET_REMOTE_ENDPOINT,
+    SOCK_GET_BIND_SPEC,
+    SOCK_GET_RECV_QUEUED,
+    SOCK_GET_SEND_QUEUED,
+    SOCK_GET_TCP_STATE,
+    SOCK_GET_TCP_MSS,
+    SOCK_GET_TCP_RTT_MS,
+    SOCK_GET_TCP_RETRANSMITS,
+    SOCK_GET_MCAST_GROUPS,
+    SOCK_GET_OPT_DEBUG,
+    SOCK_GET_OPT_KEEPALIVE,
+    SOCK_GET_OPT_BUF_SIZE,
+    SOCK_GET_OPT_DONTFRAG,
+    SOCK_GET_OPT_TTL,
+    SOCK_GET_OPT_RECV_TIMEOUT,
+    SOCK_GET_OPT_SEND_TIMEOUT,
+    SOCK_GET_OPT_SEND_BUF_SIZE,
+    SOCK_GET_OPT_TCP_NO_DELAY,
+    SOCK_GET_OPT_KEEPALIVE_INTERVAL,
+    SOCK_GET_OPT_BROADCAST_ALLOWED
+} SocketGetOpt;
+
 typedef enum{
     SOCKET_SPECIAL_NONE = 0,
     SOCKET_SPECIAL_RAW = 1,
@@ -57,7 +86,7 @@ typedef enum {
     SOCK_DBG_ALL = 2
 } SockDebugLevel;
 
-typedef struct SocketExtraOptions {
+typedef struct SocketOptions {
     uint32_t flags;
     SockDebugLevel debug_level;
     uint32_t buf_size;
@@ -69,7 +98,7 @@ typedef struct SocketExtraOptions {
     SocketSpecialKind special_kind; //TODO with PROTO_NONE select RAW SET or L2 packet sockets here
     uint8_t mcast_count;
     const net_l4_endpoint* mcast_groups;
-} SocketExtraOptions;
+} SocketOptions;
 
 typedef struct SockBindSpec{
     SockBindKind kind;
