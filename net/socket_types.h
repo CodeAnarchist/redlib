@@ -18,6 +18,8 @@ extern "C" {
 #define SOCK_ERR_DNS        -9
 #define SOCK_ERR_UNSUP      -10
 #define SOCK_ERR_WOULDBLOCK -11
+#define SOCK_ERR_EXIST      -12
+#define SOCK_ERR_NOT_FOUND  -13
 
 typedef enum {
     BIND_L3 = 0,
@@ -47,6 +49,7 @@ typedef enum {
 typedef enum {
     SOCK_GET_PROTOCOL = 1000,
     SOCK_GET_OWNER_PID,
+    SOCK_GET_SPECIAL_KIND,
     SOCK_GET_BOUND,
     SOCK_GET_CONNECTED,
     SOCK_GET_LISTENING,
@@ -76,7 +79,7 @@ typedef enum {
 typedef enum{
     SOCKET_SPECIAL_NONE = 0,
     SOCKET_SPECIAL_RAW = 1,
-    SOCKET_SPECIAL_SET = 2,
+    SOCKET_SPECIAL_CTRL = 2,
     SOCKET_SPECIAL_PACKET = 3
 } SocketSpecialKind;
 
@@ -95,7 +98,7 @@ typedef struct SocketOptions {
     uint32_t send_timeout_ms;
     uint32_t send_buf_size;
     uint8_t ttl;
-    SocketSpecialKind special_kind; //TODO with PROTO_NONE select RAW SET or L2 packet sockets here
+    SocketSpecialKind special_kind;
     uint8_t mcast_count;
     const net_l4_endpoint* mcast_groups;
 } SocketOptions;
