@@ -44,6 +44,7 @@ typedef enum {
     SOCK_OPT_KEEPALIVE_INTERVAL = 1u << 10,
     SOCK_OPT_MCAST_LEAVE = 1u << 11,
     SOCK_OPT_BROADCAST_ALLOWED = 1u << 12,
+    SOCK_OPT_RAW_FILTER = 1u << 13,
 } SockOptFlags;
 
 typedef enum {
@@ -73,7 +74,8 @@ typedef enum {
     SOCK_GET_OPT_SEND_BUF_SIZE,
     SOCK_GET_OPT_TCP_NO_DELAY,
     SOCK_GET_OPT_KEEPALIVE_INTERVAL,
-    SOCK_GET_OPT_BROADCAST_ALLOWED
+    SOCK_GET_OPT_BROADCAST_ALLOWED,
+    SOCK_GET_OPT_RAW_FILTER
 } SocketGetOpt;
 
 typedef enum{
@@ -89,6 +91,20 @@ typedef enum {
     SOCK_DBG_ALL = 2
 } SockDebugLevel;
 
+#define SOCKET_RAW_FILTER_MAX_RULES 8
+
+typedef struct SocketRawFilterRule {
+    uint8_t type;
+    uint8_t code;
+    uint8_t has_code;
+    uint8_t reserved;
+} SocketRawFilterRule;
+
+typedef struct SocketRawFilter {
+    uint32_t count;
+    SocketRawFilterRule rules[SOCKET_RAW_FILTER_MAX_RULES];
+} SocketRawFilter;
+
 typedef struct SocketOptions {
     uint32_t flags;
     SockDebugLevel debug_level;
@@ -99,6 +115,7 @@ typedef struct SocketOptions {
     uint32_t send_buf_size;
     uint8_t ttl;
     SocketSpecialKind special_kind;
+    SocketRawFilter raw_filter;
     uint8_t mcast_count;
     const net_l4_endpoint* mcast_groups;
 } SocketOptions;
