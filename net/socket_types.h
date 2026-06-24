@@ -44,7 +44,8 @@ typedef enum {
     SOCK_OPT_KEEPALIVE_INTERVAL = 1u << 10,
     SOCK_OPT_MCAST_LEAVE = 1u << 11,
     SOCK_OPT_BROADCAST_ALLOWED = 1u << 12,
-    SOCK_OPT_RAW_FILTER = 1u << 13,
+    SOCK_OPT_SPECIAL = 1u << 14,
+    SOCK_OPT_FILTER = 1u << 13,
 } SockOptFlags;
 
 typedef enum {
@@ -76,7 +77,7 @@ typedef enum {
     SOCK_GET_OPT_TCP_NO_DELAY,
     SOCK_GET_OPT_KEEPALIVE_INTERVAL,
     SOCK_GET_OPT_BROADCAST_ALLOWED,
-    SOCK_GET_OPT_RAW_FILTER
+    SOCK_GET_OPT_FILTER
 } SocketGetOpt;
 
 typedef enum{
@@ -94,17 +95,39 @@ typedef enum {
 
 #define SOCKET_RAW_FILTER_MAX_RULES 8
 
+typedef enum {
+    SOCKET_RAW_FILTER_HAS_CODE = 1u << 0,
+    SOCKET_RAW_FILTER_HAS_ID = 1u << 1,
+    SOCKET_RAW_FILTER_HAS_SEQ = 1u << 2
+} SocketRawFilterFlags;
+
+typedef enum {
+    SOCKET_PACKET_FILTER_HAS_ETHERTYPE = 1u << 0,
+    SOCKET_PACKET_FILTER_HAS_MIN_LEN = 1u << 1,
+    SOCKET_PACKET_FILTER_HAS_MAX_LEN = 1u << 2
+} SocketPacketFilterFlags;
+
 typedef struct SocketRawFilterRule {
     uint8_t type;
     uint8_t code;
-    uint8_t has_code;
+    uint8_t flags;
     uint8_t reserved;
+    uint16_t id;
+    uint16_t seq;
 } SocketRawFilterRule;
 
 typedef struct SocketRawFilter {
     uint32_t count;
     SocketRawFilterRule rules[SOCKET_RAW_FILTER_MAX_RULES];
 } SocketRawFilter;
+
+typedef struct SocketPacketFilter {
+    uint32_t flags;
+    uint16_t ethertype;
+    uint16_t min_len;
+    uint16_t max_len;
+    uint16_t reserved;
+} SocketPacketFilter;
 
 typedef struct SocketOptions {
     uint32_t flags;
@@ -117,6 +140,7 @@ typedef struct SocketOptions {
     uint8_t ttl;
     SocketSpecialKind special_kind;
     SocketRawFilter raw_filter;
+    SocketPacketFilter packet_filter;
     uint8_t mcast_count;
     const net_l4_endpoint* mcast_groups;
 } SocketOptions;
