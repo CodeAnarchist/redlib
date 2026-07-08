@@ -27,7 +27,8 @@ typedef enum {
     IPV6_CFG_DISABLE = -1,
     IPV6_CFG_STATIC = 0x01,
     IPV6_CFG_SLAAC = 0x02,
-    IPV6_CFG_DHCPV6 = 0x04
+    IPV6_CFG_DHCPV6 = 0x04,
+    IPV6_CFG_STATELESS = IPV6_CFG_SLAAC | IPV6_CFG_DHCPV6
 } ipv6_cfg_t;
 
 #ifdef __cplusplus

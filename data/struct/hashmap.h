@@ -1,5 +1,6 @@
 #pragma once
 #include "types.h"
+#include "data/hash.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,7 +45,6 @@ void hash_map_empty(hash_map_t* map);
 uint64_t hash_map_size(const hash_map_t* map);
 uint64_t hash_map_capacity(const hash_map_t* map);
 void hash_map_for_each(const hash_map_t* map, void (*func)(void* key, uint64_t key_len, void* value));
-uint64_t hash_map_fnv1a64(const void* data, uint64_t len);
 
 #ifdef __cplusplus
 }

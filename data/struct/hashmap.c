@@ -8,18 +8,8 @@ static int chm_bytewise_eq(const void* a, u64 alen, const void* b, u64 blen){
     if (alen != blen) return 0;
     const u8* p = (const u8*)a;
     const u8* q = (const u8*)b;
-    for (u64 i = 0; i < alen; i++) if (p[i] != q[i]) return 0;
+    for (u64 i = 0; i < alen; i++) if (p[i] != q[i]) return 0; //use memcmp maybe?
     return 1;
-}
-
-u64 hash_map_fnv1a64(const void* data, u64 len){
-    const u8* bytes = (const u8*)data;
-    u64 h = 0xcbf29ce484222325ULL;
-    for (u64 i = 0; i < len; i++) {
-        h^= (u64)bytes[i];
-        h*= 0x100000001b3ULL; 
-    }
-    return h;
 }
 
 static void* chm_alloc(const hash_map_t* map, uint64_t sz){
