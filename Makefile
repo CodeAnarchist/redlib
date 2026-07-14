@@ -54,6 +54,6 @@ kern:
 
 clean:
 	$(RM) ./libshared.a ./klibshared.a ./clibshared.a
-	$(RM) -r ./.build ./.kbuild ./.cbuild
+	$(RM) -r ./build ./.build ./.kbuild ./.cbuild
 
 -include $(DEP)

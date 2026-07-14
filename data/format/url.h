@@ -19,6 +19,7 @@ typedef struct {
 } ParsedURL;
 
 ParsedURL parse_url(const char *buf, uint32_t len);
+uint32_t url_path_len(string value);
 string url_request_path(const ParsedURL *url, const string *base_path);
 
 #ifdef __cplusplus

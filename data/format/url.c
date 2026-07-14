@@ -1,5 +1,18 @@
 #include "url.h"
 
+uint32_t url_path_len(string value) {
+    if (!value.data || !value.length) return 0;
+
+    uint32_t len = value.length;
+    int32_t query = str_has_char(value.data, len, '?');
+    if (query >= 0) len = (uint32_t)query;
+
+    int32_t fragment = str_has_char(value.data, len, '#');
+    if (fragment >= 0) len = (uint32_t)fragment;
+
+    return len;
+}
+
 ParsedURL parse_url(const char *buf, uint32_t len) {
     ParsedURL r = {0};
     if (!buf || !len) return r;
