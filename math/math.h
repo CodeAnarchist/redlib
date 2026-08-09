@@ -48,6 +48,10 @@ static inline float absf(float n){
     return n < 0 ? -n : n;
 }
 
+static inline double absd(double n){
+    return n < 0 ? -n : n;
+}
+
 static inline float clampf(float v, float min, float max){
     float t = v < min ? min : v;
     return t > max ? max : t;
@@ -81,11 +85,15 @@ static inline float lerpf(float a, float b, float t) {
   return (t>1) == (b>a) ? maxf(b,x) : minf(b,x);  // monotonic near t=1
 }
 
-static inline double ceil(double val){
+static inline i64 ceil_to_int(double val){
     i64 whole = (i64)val;
     double frac = val - (double)whole;
 
     return frac > 0 ? whole + 1 : whole;
+}
+
+static inline double ceil(double val){
+    return (double)ceil_to_int(val);
 }
 
 static inline i64 round_to_int(double val){
@@ -96,8 +104,12 @@ static inline i64 round_to_int(double val){
     return frac >= 0.5 ? whole + 1 : whole;
 }
 
+static inline i64 floor_to_int(double val){
+    return (i64)val;
+}
+
 static inline double floor(double val){
-    return (int64_t)val;
+    return (double)floor_to_int(val);
 }
 
 static inline int64_t abs_i64(int64_t v){

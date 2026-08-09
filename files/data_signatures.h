@@ -2,6 +2,7 @@
 
 #include "types.h"
 
+//TODO: ensure all data signatures are accessed as slices
 #define DATA_SIGNATURE(arr) (((uint64_t)(((uint8_t *)(arr))[0]) <<  0)+\
                             ((uint64_t)(((uint8_t *)(arr))[1]) <<  8)+\
                             ((uint64_t)(((uint8_t *)(arr))[2]) << 16)+\

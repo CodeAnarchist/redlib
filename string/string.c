@@ -1204,13 +1204,39 @@ uint64_t strtoul(const char *s, char **endptr, int base) {
 }
 
 float parse_float(char *input,size_t length){
-    char *p = (char*)seek_to(input, '.');
+    for (size_t i = 0; i < length && input[i] && input[i] == ' '; i++){ input++; length--; }
+    char *p = (char*)input;
+    for (size_t i = 0; i < length && input[i] && ((i == 0 && input[i] == '-') || is_digit(input[i])); i++){p++;}
     size_t l1 = p-input;
-    int64_t i = parse_int64(input, l1-(*p != 0));
+    int64_t i = parse_int64(input, l1);
     size_t l2 = length-l1;
-    int64_t f = parse_int64(p, l2);
-    int s = (i == 0 && *input == '-') ? -1 : sign(i);
+    int64_t f = 0;
+    if (l2 > 0 && input[l1] == '.'){
+        p++;
+        l2 -= 1;
+        if (input[l2] == 'f'|| input[l2] == 'F') l2--;
+        f = parse_int64(p, l2);
+    }
+    int s = i == 0 && input[0] == '-' ? -1 : sign(i);
     return i + s * ((float)f/powi(10,l2));
+}
+
+double parse_double(char *input,size_t length){
+    for (size_t i = 0; i < length && input[i] && input[i] == ' '; i++){ input++; length--; }
+    char *p = (char*)input;
+    for (size_t i = 0; i < length && input[i] && ((i == 0 && input[i] == '-') || is_digit(input[i])); i++){p++;}
+    size_t l1 = p-input;
+    int64_t i = parse_int64(input, l1);
+    size_t l2 = length-l1;
+    int64_t f = 0;
+    if (l2 > 0 && input[l1] == '.'){
+        p++;
+        l2 -= 1;
+        if (input[l2] == 'f'|| input[l2] == 'F') l2--;
+        f = parse_int64(p, l2);
+    }
+    int s = i == 0 && input[0] == '-' ? -1 : sign(i);
+    return i + s * ((double)f/powi(10,l2));
 }
 
 int64_t parse_int64(const char* str, size_t size){
@@ -1353,3 +1379,8 @@ string string_replace_character(char* original, char symbol, char *value){
     string_slice start = make_string_slice(original, 0, next-original-1);
     return string_format("%v%s%s",start, value, next);
 }
+
+size_t strlen(const char *s) { return strlen_max(s,0); }
+int strcmp(const char *a, const char *b){ return strcmp_case(a, b, false); }
+int strncmp(const char *a, const char *b, size_t length) { return strncmp_case(a,b, false, length); }
+int strend(const char *a, const char *b) { return strend_case(a,b,false); }

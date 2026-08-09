@@ -58,6 +58,14 @@ static bool skip_ws_and_comments(Tokenizer *t, Token *out) {
                 }
                 continue;
             }
+        } else if (t->comment_type == TOKENIZER_COMMENT_TYPE_SEMI){
+            if (scan_match(s, ';')) {
+                while (!scan_eof(s)) {
+                    char c = scan_next(s);
+                    if (c == '\n' || c == '\r') break;
+                }
+                continue;
+            }
         }
 
         break;
@@ -88,7 +96,7 @@ static bool read_number(Tokenizer *t, Token *tok) {
     uint32_t len = s->len;
     uint32_t pos = start;
 
-    if (pos >= len || !(buf[pos] >= '0' && buf[pos] <= '9')) return false;
+    if (pos >= len || !(buf[pos] == '-' || buf[pos] == '.' || is_digit(buf[pos]))) return false;
 
     if (buf[pos] == '0' && pos + 1 < len) {
         char p = buf[pos + 1];
@@ -164,19 +172,16 @@ static bool read_number(Tokenizer *t, Token *tok) {
         }
     }
 
-    while (pos <len && buf[pos] >= '0' && buf[pos] <= '9') pos++;
-
-    uint32_t int_end = pos;
+    if (pos < len && buf[pos] == '-') pos++;
+    
+    while (pos < len && is_digit(buf[pos])) pos++;
 
     if (pos < len && buf[pos] == '.') {
-        uint32_t p2 = pos + 1;
-        if (p2 < len && buf[p2] >= '0' && buf[p2] <= '9') {
-            pos = p2;
-            while (pos < len && buf[pos] >= '0' && buf[pos] <= '9') pos++;
-        } else {
-            pos = int_end;
-        }
+        pos++;
+        while (pos < len && is_digit(buf[pos])) pos++;
     }
+
+    if (pos < len && tolower(buf[pos]) == 'f') pos++;
 
     uint32_t mant_end = pos;
 
@@ -196,6 +201,7 @@ static bool read_number(Tokenizer *t, Token *tok) {
     tok->kind = t->skip_type_check ? TOK_CONST : TOK_NUMBER;
     tok->start = buf + start;
     tok->length = mant_end - start;
+    if (tok->length == 1 && buf[start] == '.') return false;
     tok->pos = start;
     return true;
 }
@@ -302,6 +308,7 @@ static bool read_operator(Scanner *s, Token *tok) {
 
     for (int i = 0; ops1[i]; i++) {
         if (c == ops1[i]) {
+            if (c == '-' && pos+1 < len && (is_digit(buf[pos+1]) || buf[pos+1] == '.')) return false;
             s->pos = pos + 1;
             tok->kind = TOK_OPERATOR;
             tok->start = buf + pos;
@@ -377,7 +384,9 @@ bool tokenizer_next(Tokenizer *t, Token *out) {
         return true;
     }
 
-    if (c >= '0' && c <= '9') {
+    if (read_operator(s, out)) return true;
+
+    if (c == '-' || c == '.' || (c >= '0' && c <= '9')) {
         uint32_t pos_before = s->pos;
         if (read_number(t, out)) return true;
 
@@ -402,8 +411,6 @@ bool tokenizer_next(Tokenizer *t, Token *out) {
     }
 
     if (read_delim(s, out)) return true;
-
-    if (read_operator(s, out)) return true;
 
     out->kind = TOK_SYMBOL;
     out->start = s->buf + s->pos;

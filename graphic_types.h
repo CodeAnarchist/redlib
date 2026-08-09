@@ -1,21 +1,22 @@
 #pragma once
 
 #include "types.h"
+#include "alloc/allocate.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef uint32_t color;
+typedef u32 color;
 
 typedef union argbcolor {
     struct {
-        uint32_t blue: 8;
-        uint32_t green: 8;
-        uint32_t red: 8;
-        uint32_t alpha: 8;
+        u32 blue: 8;
+        u32 green: 8;
+        u32 red: 8;
+        u32 alpha: 8;
     };
-    uint32_t color;
+    u32 color;
 } argbcolor;
 
 typedef struct {
@@ -49,6 +50,30 @@ typedef struct draw_ctx {
     uint32_t dirty_count;
     bool full_redraw;
 } draw_ctx;
+
+static inline draw_ctx buffer_to_draw_ctx(void *buf, i32 width, i32 height){
+    return (draw_ctx){
+        .dirty_rects = {},
+        .fb = (u32*)buf,
+        .stride = (u32)width * (u32)sizeof(color),
+        .width = (u32)width,
+        .height = (u32)height,
+        .dirty_count = 0,
+        .full_redraw = 0,
+    };
+}
+
+static inline draw_ctx dummy_draw_ctx(i32 width, i32 height){
+    return buffer_to_draw_ctx(zalloc(width * height * sizeof(color)), width, height);
+}
+
+static inline gpu_rect draw_ctx_rect(draw_ctx *ctx){
+    return (gpu_rect){
+        .point = {},
+        .size = {ctx->width,ctx->height}
+    };
+}
+
 
 #ifdef __cplusplus
 }

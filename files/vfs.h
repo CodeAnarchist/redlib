@@ -6,10 +6,11 @@
 #include "data/struct/hashmap.h"
 #include "syscalls/syscalls.h"
 #include "router.h"
+#include "math/math.h"
 
 #define DIR_AS_FILE "#"
 
-static arr_stack_t *entries;
+static arr_stack_t *entries = 0;
 
 static u64 (*hashing_func)(const char *path);
 
@@ -40,13 +41,14 @@ static inline bool make_complex_entry(const char *name, fs_backing_type back_typ
         .alias_info = {
             .alias_path = alias,
         },
+        .file_buffer = {},
         .backing_type = back_type,
         .entry_type = ent_type,
         .actions = actions,
         .references = 0,
         .read_only = false,
         .data_type = data_type,
-        .fid = hashing_func ? hashing_func(name): hash_map_fnv1a64(name, strlen(name)),
+        .fid = hash_filename(name),
     });
     return true;
 }
@@ -132,13 +134,33 @@ static inline FS_RESULT vfs_open(const char *path, file *fd){
     return FS_RESULT_SUCCESS;
 }
 
+static string_slice vfs_skip_path(string_slice path, string name){
+    if (name.length < path.length) return slice_from_string(name);
+    size_t m = path.length;
+    string_slice ret = {};
+    for (size_t i = 0; i < m; i++){
+        if (path.data[i] != name.data[i]){
+            ret = (string_slice){ .data = name.data + i, .length = name.length-i};
+            break;
+        }
+    }
+    ret = (string_slice){ .data = name.data + path.length, .length = name.length-path.length};
+    if (ret.length && ret.data[0] == '/') { ret.data++; ret.length--; }
+    return ret;
+}
+
 #ifndef SKIP_ROUTER_FNS
-static file_offset *out_offset;
-static file_offset current_offset;
+static file_offset *out_offset = 0;
+static file_offset current_offset = 0;
 
 static void emit_route_contents(path_resolution resolution){
-    if (!out_offset || *out_offset <= current_offset){
+    if (!out_offset || (*out_offset) <= current_offset){
+        // print("Processing entry for query %v",resolution.path);
         if (slice_lit_match(resolution.path,resolution.file->name.data, true) && resolution.file->alias_info.alias_path.length){
+            if (!resolution.forwarded.length) {
+                dir_list(resolution.file->name.data, router_fs_dir_helper->list, router_fs_dir_helper->limit, out_offset);
+                return;
+            }
             string fullpath = string_format("%S/%v",resolution.file->alias_info.alias_path,resolution.forwarded);
             dir_list(fullpath.data, router_fs_dir_helper->list, router_fs_dir_helper->limit, out_offset);
             return;
@@ -147,9 +169,11 @@ static void emit_route_contents(path_resolution resolution){
             resolution.file->actions.readdir(resolution.forwarded.data, router_fs_dir_helper->list, router_fs_dir_helper->limit, out_offset);
             return;
         }
-        if (!dir_list_fill(router_fs_dir_helper, resolution.file->name.data)){
-            if (out_offset) *out_offset = current_offset;
-        }
+        string_slice lpc = vfs_skip_path(resolution.path,resolution.file->name);
+        if (lpc.length)
+            if (!dir_list_fill(router_fs_dir_helper, lpc.data)){
+                if (out_offset) *out_offset = current_offset;
+            }
     }
     current_offset++;
 }
@@ -171,6 +195,19 @@ static inline size_t vfs_read(file *fd, char* buf, size_t size, file_offset offs
         return res;
     } 
     return buffer_read(&mfile->file_buffer, buf, size, offset);
+}
+
+static inline size_t vfs_transform(const char *path, void* buf, size_t size){
+    if (path && *path == '/') path++;
+    if (!path || !strlen(path)) path = DIR_AS_FILE;
+    path_resolution resolution = parse_path(entries, path, path_resolution_forward, 0);
+    module_file *mfile = resolution.file;
+    if (!mfile) return FS_RESULT_NOTFOUND;
+    if (mfile->actions.transform) return mfile->actions.transform(path, buf, size);
+    if (mfile->alias_info.alias_fd.id){
+        return transformf(mfile->alias_info.alias_path.data, buf, size);
+    } 
+    return 0;
 }
 
 static inline size_t vfs_write(file *fd, const char* buf, size_t size, file_offset offset){
@@ -201,7 +238,7 @@ static inline bool vfs_stat(const char *path, fs_stat *out_stat){
     if (file->alias_info.alias_path.length){
         string fullpath = file->alias_info.alias_path;
         string additional = (string){};
-        if (file->entry_type == entry_directory){
+        if (file->entry_type == entry_directory && resolution.forwarded.length){
             additional = string_format("%S/%s",fullpath,resolution.forwarded);
             fullpath = additional;
         }
@@ -237,4 +274,40 @@ static inline size_t vfs_readdir(const char *path, void *buf, size_t size, file_
 
 static inline size_t vfs_list(const char *path, void *buf, size_t size, file_offset *offset){
     return vfs_readdir(path, buf, size, offset);
+}
+
+static inline FS_RESULT vfs_trace_open(const char *path, file *fd){
+     FS_RESULT res = vfs_open(path, fd);
+     print("vfs_trace_open result %llx",res);
+     return res;
+}
+
+static inline size_t vfs_trace_read(file *fd, char *buf, size_t size, file_offset offset){
+     size_t res = vfs_read(fd, buf, size, offset);
+     print("vfs_trace_read result %llx",res);
+     return res;
+}
+
+static inline size_t vfs_trace_transform(const char *path, void *buf, size_t size){
+     size_t res = vfs_transform(path, buf, size);
+     print("vfs_trace_transform result %llx",res);
+     return res;
+}
+
+static inline size_t vfs_trace_write(file *fd, const char *buf, size_t size, file_offset offset){
+     size_t res = vfs_write(fd, buf, size, offset);
+     print("vfs_trace_write result %llx",res);
+     return res;
+}
+
+static inline bool vfs_trace_stat(const char *path, fs_stat *outstat){
+     bool res = vfs_stat(path, outstat);
+     print("vfs_trace_stat result %llx",res);
+     return res;
+}
+
+static inline size_t vfs_trace_readdir(const char *path, void* buf, size_t size, file_offset *offset){
+     size_t res = vfs_readdir(path, buf, size, offset);
+     print("vfs_trace_readdir result %llx",res);
+     return res;
 }

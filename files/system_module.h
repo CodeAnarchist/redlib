@@ -14,13 +14,18 @@ typedef struct {
     data_signature data_type;
 } fs_stat;
 
-typedef FS_RESULT (*file_open_fn)(const char*, file*);
-typedef size_t (*file_read_fn)(file*, char*, size_t, file_offset);
-typedef size_t (*file_write_fn)(file*, const char *, size_t, file_offset);
-typedef void (*file_close_fn)(file *descriptor);
-typedef bool   (*file_getstat_fn)(const char*, fs_stat*);
-typedef size_t (*file_readdir_fn)(const char*, void*, size_t, file_offset*);
-typedef bool (*file_truncate_fn)(file*, size_t);
+typedef FS_RESULT   (*file_open_fn)(const char*, file*);
+typedef size_t      (*file_read_fn)(file*, char*, size_t, file_offset);
+typedef size_t      (*file_write_fn)(file*, const char *, size_t, file_offset);
+typedef void        (*file_close_fn)(file *descriptor);
+typedef bool        (*file_getstat_fn)(const char*, fs_stat*);
+typedef size_t      (*file_readdir_fn)(const char*, void*, size_t, file_offset*);
+typedef bool        (*file_truncate_fn)(file*);
+typedef size_t      (*file_transform_fn)(const char*, void*, size_t);
+//mkdir
+//mkfile
+//delete
+//moving
 
 #define VERSION_NUM(major,minor,patch,build) (uint64_t)((((uint64_t)major) << 48) | (((uint64_t)minor) << 32) | (((uint64_t)patch) << 16) | ((uint64_t)build))
 
@@ -34,6 +39,7 @@ typedef struct {
     file_truncate_fn truncate;
     file_getstat_fn getstat;
     file_readdir_fn readdir;
+    file_transform_fn transform;
 } file_actions;
 
 typedef struct {
@@ -64,8 +70,10 @@ typedef struct system_module {
     const char* mount;
     uint64_t version;
 
-    bool (*init)(struct system_module *);
-    bool (*fini)();
+    u16 owner;
+
+    bool (*init)(struct system_module *);//NOTE: for modules loaded in userspace, it's the program's responsability to call these functions
+    bool (*fini)();//NOTE: for modules loaded in userspace, it's the program's responsability to call these functions
 
     file_open_fn open;
     file_read_fn read;
@@ -73,10 +81,11 @@ typedef struct system_module {
     file_close_fn close;
     
     file_truncate_fn truncate;
-    
     file_getstat_fn getstat;
 
     file_readdir_fn readdir;
+
+    file_transform_fn transform;
 
     alias_info_t alias_info; 
 

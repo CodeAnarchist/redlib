@@ -42,6 +42,7 @@ extern void get_mouse_status(mouse_data *in);
 
 extern void msleep(uint64_t time);
 extern __attribute__((noreturn)) void halt(int32_t exit_code);
+extern __attribute__((noreturn)) void halt_thread(int32_t exit_code);
 extern int32_t exec(const char* prog_name, int argc, const char* argv[], u32 mode);
 extern int32_t kill_process(uint16_t pid);
 
@@ -75,11 +76,12 @@ extern size_t readf(file *descriptor, char* buf, size_t size);
 extern size_t writef(file *descriptor, const char* buf, size_t size);
 extern size_t sreadf(const char* path, void* buf, size_t size);
 extern size_t swritef(const char* path, const void* buf, size_t size, bool append);
+extern size_t transformf(const char* path, void* buf, size_t size);
 extern void closef(file *descriptor);
 extern bool statf(const char *path, fs_stat *out_stat);
 extern bool truncatef(file*, size_t);
-// extern bool load_fsmodule(system_module *mod);
-// extern bool unload_fsmodule();
+extern bool load_fsmodule(system_module *mod, bool global);
+extern bool unload_fsmodule();
 
 extern bool send_signal(signal_types type, u16 proc_id);
 extern bool handle_signal(signal_types type, signal_handler handler);

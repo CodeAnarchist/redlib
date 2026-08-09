@@ -60,7 +60,7 @@ static inline int hex_val(char c) {
 
 uint32_t u64_to_base(char *tmp, uint64_t v, unsigned base, int upper);
 size_t strlen_max(const char *s, uint32_t max_length);
-static inline size_t strlen(const char *s) { return strlen_max(s,0); }
+
 string string_from_literal(const char *literal);
 string string_from_literal_length(const char *array, uint32_t max_length);
 string string_from_char(const char c);
@@ -82,14 +82,10 @@ int tolower(int c);
 int toupper(int c);
 
 int strcmp_case(const char *a, const char *b, bool case_insensitive);
-static inline int strcmp(const char *a, const char *b){ return strcmp_case(a, b, false); }
 int strncmp_case(const char *a, const char *b, bool case_insensitive, size_t length);
-static inline int strncmp(const char *a, const char *b, size_t length) { return strncmp_case(a,b, false, length); }
 bool strcont(const char *a, const char *b);
 int strstart_case(const char *a, const char *b, bool case_insensitive);
-static inline int strstart(const char *a, const char *b) { return strstart_case(a,b,false); }
 int strend_case(const char *a, const char *b, bool case_insensitive);
-static inline int strend(const char *a, const char *b) { return strend_case(a,b,false); }
 int strindex(const char *a, const char *b);
 int count_occurrences(const char* str, char c);
 
@@ -98,6 +94,7 @@ uint64_t parse_int_u64(const char* str, size_t size);
 int64_t parse_int64(const char* str, size_t size);
 uint64_t strtoul(const char *s, char **endptr, int base);
 float parse_float(char *input,size_t length);
+double parse_double(char *input,size_t length);
 
 bool utf16tochar(uint16_t* str_in, char* out_str, size_t max_len);
 
@@ -115,6 +112,13 @@ bool parse_uint32_dec_exact(const char *s, uint32_t *out);
 char* strcasestr(const char* haystack, const char* needle);
 
 string string_replace_character(char* original, char symbol, char *value);
+
+static inline int strstart(const char *a, const char *b) { return strstart_case(a,b,false); }
+
+size_t strlen(const char *s);
+int strcmp(const char *a, const char *b);
+int strncmp(const char *a, const char *b, size_t length);
+int strend(const char *a, const char *b);
 
 #ifdef __cplusplus
 }

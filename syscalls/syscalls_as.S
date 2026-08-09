@@ -54,16 +54,18 @@ syscall_def sreadf,     FILE_SIMPLE_READ_CODE
 syscall_def swritef,    FILE_SIMPLE_WRITE_CODE
 syscall_def statf,      FILE_STAT_CODE
 syscall_def truncatef,  FILE_TRNC_CODE
+syscall_def transformf, FILE_TRANS_CODE
 
 syscall_def send_signal, SIGNAL_SEND_CODE
 syscall_def handle_signal, SIGNAL_HANDLER_CODE
 
-//syscall_def load_fsmodule, LOAD_FSMODULE_CODE
-//syscall_def unload_fsmodule, UNLOAD_FSMODULE_CODE 
+syscall_def load_fsmodule, LOAD_FSMODULE_CODE
+syscall_def unload_fsmodule, UNLOAD_FSMODULE_CODE 
 
 syscall_def in_case_of_js_break_glass, IN_CASE_OF_JS_CODE
 
 #endif
 syscall_def msleep, SLEEP_CODE
 syscall_def halt, HALT_CODE
+syscall_def halt_thread, HALT_THREAD_CODE
 #endif

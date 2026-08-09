@@ -1,5 +1,6 @@
 #include "uno.h"
 #include "ui/draw/draw.h"
+#include "syscalls/syscalls.h"
 
 gpu_size calculate_label_size(text_ui_config text_config){
     if (!text_config.slice.length || text_config.font_size==0) return (gpu_size){0,0};
@@ -78,8 +79,8 @@ common_ui_config rectangle(draw_ctx *ctx, rect_ui_config rect_config, common_ui_
     uint32_t p = rect_config.border_padding;
     uint32_t twice_p = p << 1;
     
-    if (bx < 0) bw -= -bx;
-    if (by < 0) bh -= -by;
+    if (bx < 0) { bw -= -bx; bx = 0; }
+    if (by < 0) { bh -= -by; by = 0; }
     
     int32_t inner_x = bx + (rect_config.border_padding ? 0 : b);
     int32_t inner_y = by + (rect_config.border_padding ? 0 : b);
@@ -101,4 +102,20 @@ common_ui_config rectangle(draw_ctx *ctx, rect_ui_config rect_config, common_ui_
         .horizontal_align = common_config.horizontal_align,
         .vertical_align = common_config.vertical_align
     };
+}
+
+common_ui_config button(draw_ctx *ctx, rect_ui_config rect_config, common_ui_config common_config, bool *pressed){
+    common_ui_config config = rectangle(ctx, rect_config, common_config);
+    mouse_data data = {};
+    get_mouse_status(&data);
+    if (pressed){
+        if (mouse_button_down(&data, LMB)){ 
+            if (data.position.x < config.point.x || data.position.x > config.point.x + (i32)config.size.width ||
+                data.position.y < config.point.y || data.position.y > config.point.y + (i32)config.size.height) *pressed = false;
+            else
+                *pressed = true;
+        } else 
+            *pressed = false;
+    }
+    return config;
 }

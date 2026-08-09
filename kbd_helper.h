@@ -3,11 +3,15 @@
 #include "input_keycodes.h"
 #include "keyboard_input.h"
 
-static u8 current_modifier;
+static u8 current_modifier = 0;
+
+static u8 special_key = 0;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "syscalls/syscalls.h"
 
 static inline bool handle_modifier(kbd_event *event){
     switch (event->type) {
@@ -17,8 +21,23 @@ static inline bool handle_modifier(kbd_event *event){
         case MOD_RELEASE:
             current_modifier &= ~event->modifier;
             return true;
+        case KEY_PRESS:
+            if (event->key == KEY_CAPSLOCK){
+                print("Current special key %x",special_key);
+                if (!special_key)
+                    special_key = event->key;
+                else if (special_key == KEY_CAPSLOCK)
+                    special_key = 0;
+                return true;
+            }
+            return false;
         default: return false;
     }
+}
+
+static inline bool is_mod_pressed(int mod, bool double_side){
+    if (double_side && mod < 4 && (current_modifier >> (mod + 4)) & 1) return true;
+    return (current_modifier >> mod) & 1;
 }
 
 static inline bool handle_copy(kbd_event *ev, void (*on_copy)(void *ctx)){

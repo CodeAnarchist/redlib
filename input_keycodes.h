@@ -254,14 +254,15 @@
 // 0xdc  Keypad Decimal
 // 0xdd  Keypad Hexadecimal
 
-#define KEY_LEFTCTRL 0xe0 // Keyboard Left Control
-#define KEY_LEFTSHIFT 0xe1 // Keyboard Left Shift
-#define KEY_LEFTALT 0xe2 // Keyboard Left Alt
-#define KEY_LEFTMETA 0xe3 // Keyboard Left GUI
-#define KEY_RIGHTCTRL 0xe4 // Keyboard Right Control
-#define KEY_RIGHTSHIFT 0xe5 // Keyboard Right Shift
-#define KEY_RIGHTALT 0xe6 // Keyboard Right Alt
-#define KEY_RIGHTMETA 0xe7 // Keyboard Right GUI
+//NOTE: these are really 0xe_, I'm just removing that for mapping purposes
+#define KEY_LEFTCTRL 0x0 // Keyboard Left Control
+#define KEY_LEFTSHIFT 0x1 // Keyboard Left Shift
+#define KEY_LEFTALT 0x2 // Keyboard Left Alt
+#define KEY_LEFTMETA 0x3 // Keyboard Left GUI
+#define KEY_RIGHTCTRL 0x4 // Keyboard Right Control
+#define KEY_RIGHTSHIFT 0x5 // Keyboard Right Shift
+#define KEY_RIGHTALT 0x6 // Keyboard Right Alt
+#define KEY_RIGHTMETA 0x7 // Keyboard Right GUI
 
 #define KEY_MEDIA_PLAYPAUSE 0xe8
 #define KEY_MEDIA_STOPCD 0xe9
@@ -370,7 +371,7 @@ static const char hid_keycode_to_shift_char[256] = {
 #else
 extern "C" {
 #endif
-char hid_to_char(unsigned char c, u8 modifier);
+char hid_to_char(unsigned char c, u8 modifier, u8 special);
 
 static inline bool printable(unsigned char c){
     return c >= 'A' && c <='z';
