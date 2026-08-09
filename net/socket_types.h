@@ -20,6 +20,7 @@ extern "C" {
 #define SOCK_ERR_WOULDBLOCK -11
 #define SOCK_ERR_EXIST      -12
 #define SOCK_ERR_NOT_FOUND  -13
+#define SOCK_ERR_NO_ROUTE   -14
 
 typedef enum {
     BIND_L3 = 0,
@@ -46,6 +47,17 @@ typedef enum {
     SOCK_OPT_BROADCAST_ALLOWED = 1u << 12,
     SOCK_OPT_SPECIAL = 1u << 14,
     SOCK_OPT_FILTER = 1u << 13,
+    SOCK_OPT_NONBLOCK = 1u << 15,
+    SOCK_OPT_DONTROUTE = 1u << 16,
+    SOCK_OPT_REUSEADDR = 1u << 17,
+    SOCK_OPT_REUSEPORT = 1u << 18,
+    //SOCK_OPT_RECV_LOWAT = 1u << 19, //TODO low water mark
+    SOCK_OPT_TCP_MAXSEG = 1u << 20,
+    SOCK_OPT_LINGER = 1u << 21,
+    SOCK_OPT_TCP_SACK = 1u << 22,
+    SOCK_OPT_TCP_DSACK = 1u << 23,
+    //SOCK_OPT_TCP_PACING = 1u << 24,
+    //SOCK_OPT_MAX_PACING_RATE = 1u << 25,
 } SockOptFlags;
 
 typedef enum {
@@ -77,7 +89,19 @@ typedef enum {
     SOCK_GET_OPT_TCP_NO_DELAY,
     SOCK_GET_OPT_KEEPALIVE_INTERVAL,
     SOCK_GET_OPT_BROADCAST_ALLOWED,
-    SOCK_GET_OPT_FILTER
+    SOCK_GET_OPT_FILTER,
+    SOCK_GET_OPT_NONBLOCK,
+    SOCK_GET_OPT_DONTROUTE,
+    SOCK_GET_OPT_REUSEADDR,
+    SOCK_GET_OPT_REUSEPORT,
+    //SOCK_GET_OPT_RECV_LOWAT,
+    SOCK_GET_OPT_TCP_MAXSEG,
+    SOCK_GET_OPT_LINGER,
+    SOCK_GET_OPT_TCP_SACK,
+    SOCK_GET_OPT_TCP_DSACK,
+    SOCK_GET_TCP_URGENT_REMAINING,
+    //SOCK_GET_OPT_TCP_PACING,
+    //SOCK_GET_OPT_MAX_PACING_RATE
 } SocketGetOpt;
 
 typedef enum{
@@ -121,6 +145,11 @@ typedef struct SocketRawFilter {
     SocketRawFilterRule rules[SOCKET_RAW_FILTER_MAX_RULES];
 } SocketRawFilter;
 
+typedef struct SocketLinger {
+    uint32_t enabled;
+    uint32_t timeout_ms;
+} SocketLinger;
+
 typedef struct SocketPacketFilter {
     uint32_t flags;
     uint16_t ethertype;
@@ -137,6 +166,10 @@ typedef struct SocketOptions {
     uint32_t recv_timeout_ms;
     uint32_t send_timeout_ms;
     uint32_t send_buf_size;
+    //uint32_t recv_lowat;
+    uint32_t tcp_maxseg;
+    //uint32_t max_pacing_rate;
+    SocketLinger linger;
     uint8_t ttl;
     SocketSpecialKind special_kind;
     SocketRawFilter raw_filter;
