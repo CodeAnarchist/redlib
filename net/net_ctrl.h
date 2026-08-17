@@ -12,7 +12,8 @@ typedef enum {
     NET_CTRL_OBJ_LINK = 1,
     NET_CTRL_OBJ_ADDR = 2,
     NET_CTRL_OBJ_ROUTE = 3,
-    NET_CTRL_OBJ_NEIGH = 4
+    NET_CTRL_OBJ_NEIGH = 4,
+    NET_CTRL_OBJ_FIREWALL = 5
 } NetCtrlObject;
 
 typedef enum {
@@ -45,12 +46,27 @@ typedef enum {
     NET_CTRL_EXT_CONFIG = 14,
     NET_CTRL_EXT_KIND = 15,
     NET_CTRL_EXT_DAD_STATE = 16,
+    NET_CTRL_EXT_RULE_ID = 17,
+    NET_CTRL_EXT_ACTION = 18,
+    NET_CTRL_EXT_DIRECTION = 19,
+    NET_CTRL_EXT_PORT_FROM = 20,
+    NET_CTRL_EXT_PORT_TO = 21,
 } NetCtrlExtAttr;
 
 typedef enum {
     NET_CTRL_NEIGH_F_STATIC = 1 << 0,
     NET_CTRL_NEIGH_F_ROUTER = 1 << 1,
 } NetCtrlNeighFlags;
+
+typedef enum {
+    NET_CTRL_FIREWALL_ALLOW = 1,
+    NET_CTRL_FIREWALL_DENY = 2
+} NetCtrlFirewallAction;
+
+typedef enum {
+    NET_CTRL_FIREWALL_IN = 1,
+    NET_CTRL_FIREWALL_OUT = 2
+} NetCtrlFirewallDirection;
 
 typedef struct NetCtrlMsg {
     uint16_t object;
@@ -113,6 +129,27 @@ typedef struct NetCtrlNeighInfo {
     net_l4_endpoint address;
     uint8_t mac[6];
 } NetCtrlNeighInfo;
+
+typedef struct NetCtrlFirewallState {
+    uint8_t enabled;
+    uint8_t default_in;
+    uint8_t default_out;
+    uint8_t reserved;
+    uint32_t rule_count;
+} NetCtrlFirewallState;
+
+typedef struct NetCtrlFirewallRule {
+    uint32_t id;
+    uint8_t action;
+    uint8_t direction;
+    uint8_t protocol;
+    uint8_t ip_version;
+    uint8_t prefix_len;
+    uint8_t reserved;
+    uint16_t port_from;
+    uint16_t port_to;
+    uint8_t address[16];
+} NetCtrlFirewallRule;
 
 #define NET_CTRL_MSG_DATA(m) ((void*)((uint8_t*)(m) + sizeof(NetCtrlMsg)))
 #define NET_CTRL_MSG_CONST_DATA(m) ((const void*)((const uint8_t*)(m) + sizeof(NetCtrlMsg)))
