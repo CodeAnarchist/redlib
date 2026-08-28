@@ -72,6 +72,7 @@ bool sheldon_run_cmd(shell_handle *handle, string_slice fullcmd){
     }
 
     int state = 1;
+    bool a = false;
     size_t amount = 0x100;
     char *buf = (char*)zalloc(amount + 1);
     if (!buf) {
@@ -83,7 +84,7 @@ bool sheldon_run_cmd(shell_handle *handle, string_slice fullcmd){
     char* data_buf = (char*)zalloc(0x1000);
 
     env_config proc_env_config = {env_display_text,env_behavior_scroll};
-    do {
+    while (true) {
         kbd_event event;
         if (read_event(&event)){
             if (!handle_modifier(&event)){
@@ -121,17 +122,19 @@ bool sheldon_run_cmd(shell_handle *handle, string_slice fullcmd){
             if (handle->bindings.console_flush) handle->bindings.console_flush(handle);
         }
 
+        if (a) {
+            if (!n) break;
+            continue;
+        }
+
         seek(&state_fd, 0, SEEK_ABSOLUTE);
-        if (readf(&state_fd, (char*)&state, sizeof(int)) != sizeof(int)) state = 0;
+        int next_state;
+        if (readf(&state_fd, (char*)&next_state, sizeof(next_state)) == sizeof(next_state)) {
+            state = next_state;
+            if (!state) a = true;
+        }
         // print("Display type %i",proc_display_type);
         // if (state && !n) msleep(20);
-    } while (state);
-
-    for (;;) {
-        size_t n = readf(&out_fd, buf, amount);
-        if (!n) break;
-        buf[n] = 0;
-        shell_print_specify_newline(handle, false, buf);
     }
 
     release(buf);
