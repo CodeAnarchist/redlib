@@ -66,20 +66,24 @@ void Console::resize(){
         u32 copy_rows = min(old_rows, new_rows);
 
         for (u32 y = 0; y < copy_rows; y++) {
-            const char* src = old_data + (((old_offset + y) % old_rows) * old_cols);
-            char* dst = new_data + (y * new_columns);
+            u32 src_index = ((old_offset + y) % old_rows) * old_cols;
+            u32 dst_index = y * new_columns;
+            const char* src = old_data + src_index;
+            char* dst = new_data + dst_index;
             u32 len = line_len(src, old_cols);
             u32 w = min(len, new_columns);
             if (w){
                 memcpy(dst, src, w);
-                memcpy(new_bg_data, old_bg_data, w * sizeof(color));
-                memcpy(new_fg_data, old_fg_data, w * sizeof(color));
+                memcpy(new_bg_data + dst_index, old_bg_data + src_index, w * sizeof(color));
+                memcpy(new_fg_data + dst_index, old_fg_data + src_index, w * sizeof(color));
             }
             if (w < new_columns) dst[w] = 0;
         }
     }
 
     if (old_data) release(old_data);
+    if (old_bg_data) release(old_bg_data);
+    if (old_fg_data) release(old_fg_data);
 
     row_data = new_data;
     row_bg_data = new_bg_data;
@@ -121,8 +125,12 @@ void Console::put_char(char c){
         return;
     }
     if (c == '\t'){
-        current_format.cursor_x += 4;
-        if (current_format.cursor_x >= columns) newline();
+        uint32_t spaces = 4 - (current_format.cursor_x % 4);
+        while (spaces > 0) {
+            Console::put_char(' ');
+            spaces--;
+        }
+        last_char = c;
         return;
     }
     if (c == '\n'){
@@ -200,13 +208,16 @@ void Console::newline(){
     if (!check_ready()) return;
     current_format.cursor_x = 0;
     current_format.cursor_y++;
-    // if (current_format.cursor_y >= rows - 1){
-    //     scroll();
-    //     current_format.cursor_y = rows - 1;
-    // } else {
-    //     char* line = row_data + (((scroll_row_offset + current_format.cursor_y) % rows) * columns);
-    //     memset(line, 0, columns);
-    // }
+    if (current_format.cursor_y >= rows){
+        current_format.cursor_y = rows - 1;
+        scroll();
+    } else {
+        uint32_t line_index = (scroll_row_offset + current_format.cursor_y) % rows;
+        char* line = row_data + line_index * columns;
+        memset(line, 0, columns);
+        memset32(row_bg_data + line_index * columns, current_format.default_bg_color, columns*sizeof(color));
+        memset32(row_fg_data + line_index * columns, current_format.default_text_color, columns*sizeof(color));
+    }
 }
 
 void Console::scroll(){
@@ -216,6 +227,8 @@ void Console::scroll(){
     u32 clear_index = (scroll_row_offset + rows - 1) % rows;
     char* line = row_data + clear_index * columns;
     memset(line, 0, columns);
+    memset32(row_bg_data + clear_index * columns, current_format.default_bg_color, columns*sizeof(color));
+    memset32(row_fg_data + clear_index * columns, current_format.default_text_color, columns*sizeof(color));
 
     fb_clear(dctx, current_format.default_bg_color);
     for (u32 y = 0; y < rows; y++) {
@@ -224,7 +237,7 @@ void Console::scroll(){
         color *line_bg = &row_bg_data[((scroll_row_offset + y) % rows) * columns];
         u32 len = line_len(l, columns);
         if (!len) continue;
-        u32 ypix = (y * line_height) + (line_height / 2);
+        u32 ypix = y * line_height;
         for (u32 x = 0; x < len; x++) {
             render_glyph(x * char_width, ypix, l[x], line_fg[x], line_bg[x]);
         }
@@ -249,7 +262,7 @@ void Console::redraw(){
         color *line_bg = &row_bg_data[((scroll_row_offset + y) % rows) * columns];
         u32 len = line_len(l, columns);
         if (!len) continue;
-        u32 ypix = (y * line_height) + (line_height / 2);
+        u32 ypix = y * line_height;
         for (u32 x = 0; x < len; x++){
             render_glyph(x * char_width, ypix, l[x], line_fg[x], line_bg[x]);
         }
@@ -264,9 +277,11 @@ void Console::screen_clear(){
 }
 
 void Console::clear(){
-    screen_clear();
-    if (row_data && buffer_data_size) memset(row_data, 0, buffer_data_size);
-    current_format.cursor_x = current_format.cursor_y = 0;
+	screen_clear();
+	if (row_data && buffer_data_size) memset(row_data, 0, buffer_data_size);
+	if (row_bg_data && buffer_data_size) memset32(row_bg_data, current_format.default_bg_color, buffer_data_size*sizeof(color));
+	if (row_fg_data && buffer_data_size) memset32(row_fg_data, current_format.default_text_color, buffer_data_size*sizeof(color));
+	current_format.cursor_x = current_format.cursor_y = 0;
 }
 
 const char* Console::get_current_line(){
