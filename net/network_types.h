@@ -27,6 +27,7 @@ typedef enum {
 } protocol_t;
 
 typedef uint64_t socket_handle_t;
+typedef uint16_t l3_id_t;
 
 typedef enum {
     IP_TX_AUTO = 0,
@@ -35,7 +36,7 @@ typedef enum {
 } ip_tx_scope_t;
 
 typedef struct {
-    uint8_t index;
+    uint16_t index; //TODO union union{uint8_t ifindex; l3_id_t l3_id;} target;
     ip_tx_scope_t scope;
 } ip_tx_opts_t;
 

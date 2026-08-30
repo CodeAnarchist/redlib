@@ -96,7 +96,7 @@ typedef struct NetCtrlLinkInfo {
 
 typedef struct NetCtrlPrefix {
     uint8_t ifindex;
-    uint8_t l3_id;
+    l3_id_t l3_id;
     uint8_t prefix_len;
     uint8_t reserved;
     net_l4_endpoint address;

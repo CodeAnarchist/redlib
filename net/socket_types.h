@@ -181,7 +181,7 @@ typedef struct SocketOptions {
 typedef struct SockBindSpec{
     SockBindKind kind;
     ip_version_t ver;
-    uint8_t l3_id;
+    l3_id_t l3_id;
     uint8_t ifindex;
     uint8_t ip[16];
 } SockBindSpec;
