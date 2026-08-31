@@ -36,7 +36,10 @@ typedef enum {
 } ip_tx_scope_t;
 
 typedef struct {
-    uint16_t index; //TODO union union{uint8_t ifindex; l3_id_t l3_id;} target;
+    union {
+        uint8_t ifindex;
+        l3_id_t l3_id;
+    } target;
     ip_tx_scope_t scope;
 } ip_tx_opts_t;
 
