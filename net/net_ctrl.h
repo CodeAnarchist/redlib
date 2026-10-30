@@ -13,7 +13,8 @@ typedef enum {
     NET_CTRL_OBJ_ADDR = 2,
     NET_CTRL_OBJ_ROUTE = 3,
     NET_CTRL_OBJ_NEIGH = 4,
-    NET_CTRL_OBJ_FIREWALL = 5
+    NET_CTRL_OBJ_FIREWALL = 5,
+    NET_CTRL_OBJ_VLAN = 6
 } NetCtrlObject;
 
 typedef enum {
@@ -51,6 +52,8 @@ typedef enum {
     NET_CTRL_EXT_DIRECTION = 19,
     NET_CTRL_EXT_PORT_FROM = 20,
     NET_CTRL_EXT_PORT_TO = 21,
+    NET_CTRL_EXT_VLAN_ID = 22,
+    NET_CTRL_EXT_PARENT_IFNAME = 23,
 } NetCtrlExtAttr;
 
 typedef enum {
@@ -86,13 +89,21 @@ typedef struct NetCtrlLinkInfo {
     uint8_t ifindex;
     uint8_t up;
     uint8_t kind;
-    uint8_t reserved;
+    uint8_t link_kind;
     uint16_t metric;
     uint16_t mtu;
     uint8_t ipv4_count;
     uint8_t ipv6_count;
     char name[16];
 } NetCtrlLinkInfo;
+
+typedef struct NetCtrlVlanInfo {
+    uint8_t ifindex;
+    uint8_t parent_ifindex;
+    uint16_t vlan_id;
+    char name[16];
+    char parent[16];
+} NetCtrlVlanInfo;
 
 typedef struct NetCtrlPrefix {
     uint8_t ifindex;

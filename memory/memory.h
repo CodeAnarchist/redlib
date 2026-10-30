@@ -15,6 +15,9 @@ extern "C" {
 #endif
 
 int memcmp(const void *s1, const void *s2, size_t count);
+#undef memchr
+void* memchr(const void* ptr, int value, size_t count);
+size_t memcspn(const void* ptr, size_t count, const void* reject, size_t reject_count);
 #undef memset
 void* memset(void* dest, int byte, size_t count);//Let the record show libc is fucking stupid
 void* memset32(void* dest, uint32_t val, size_t count);

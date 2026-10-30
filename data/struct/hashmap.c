@@ -2,41 +2,28 @@
 #include "hashmap.h"
 #include "alloc/allocate.h"
 #include "std/memory.h"
+#include "data/hash.h"
+#include "math/math.h"
 #include "string/string.h"
 
-static int chm_bytewise_eq(const void* a, u64 alen, const void* b, u64 blen){
-    if (alen != blen) return 0;
-    const u8* p = (const u8*)a;
-    const u8* q = (const u8*)b;
-    for (u64 i = 0; i < alen; i++) if (p[i] != q[i]) return 0; //use memcmp maybe?
-    return 1;
+static bool chm_key_equals(const hash_map_t* map, const void* a, u64 alen, const void* b, u64 blen){
+    if (map->keyeq_fn) return map->keyeq_fn(a, alen, b, blen) != 0;
+    return alen == blen && (!alen || memcmp(a, b, alen) == 0);
 }
 
 static void* chm_alloc(const hash_map_t* map, uint64_t sz){
     if (!map) return 0;
-    if (map && map->alloc) return map->alloc(sz);
+    if (map->alloc) return map->alloc(sz);
     return zalloc(sz);
 }
 
 static void chm_free(const hash_map_t* map, void* ptr){
     if (!map) return;
-    if (map && map->free){
+    if (map->free){
         map->free(ptr);
         return;
     }
     release(ptr);
-}
-
-static uint64_t chm_next_pow2(uint64_t x){
-    if (x<8) return 8;
-    x--;
-    x|=x>>1;
-    x|=x>>2;
-    x|=x>>4;
-    x|=x>>8;
-    x|=x>>16;
-    x|=x>>32;
-    return x + 1;
 }
 
 static void chm_update_threshold(hash_map_t* map){
@@ -45,7 +32,8 @@ static void chm_update_threshold(hash_map_t* map){
 
 hash_map_t* hash_map_create_alloc(uint64_t initial_capacity, void* (*alloc)(size_t size),void (*mfree)(void* ptr)){
     if (!alloc || !mfree) return 0;
-    uint64_t cap = chm_next_pow2(initial_capacity ? initial_capacity : 8);
+    uint64_t cap = next_pow2_u64(initial_capacity < 8 ? 8 : initial_capacity);
+    if (!cap || cap > (size_t)-1 / sizeof(hash_map_entry_t*)) return NULL;
     hash_map_t* m = (hash_map_t*)alloc((uint64_t)sizeof(hash_map_t));
 
     if (!m) return 0;
@@ -53,7 +41,7 @@ hash_map_t* hash_map_create_alloc(uint64_t initial_capacity, void* (*alloc)(size
     m->alloc = alloc; 
     m->free = mfree;
     m->hash_fn = hash_map_fnv1a64;
-    m->keyeq_fn = chm_bytewise_eq;
+    m->keyeq_fn = NULL;
     m->value_dispose = 0;
     m->capacity = cap;
     m->size = 0;
@@ -75,17 +63,7 @@ hash_map_t* hash_map_create(uint64_t initial_capacity){
 
 void hash_map_destroy(hash_map_t* map){
     if(!map) return;
-
-    for (uint64_t i = 0; i < map->capacity; i++) {
-        hash_map_entry_t* e = map->buckets[i];
-        while(e){
-            hash_map_entry_t* n = e->next;
-            if(e->key_len>0 && e->key) chm_free(map,e->key);
-            if(map->value_dispose && e->value) map->value_dispose(e->value);
-            chm_free(map, e);
-            e = n;
-        }
-    }
+    hash_map_empty(map);
     chm_free(map, map->buckets);
     chm_free(map, map);
 }
@@ -96,10 +74,11 @@ void hash_map_set_allocator(hash_map_t* map, void* (*alloc)(size_t), void (*deal
     map->free = dealloc;
 }
 
-void hash_map_set_hash(hash_map_t* map, hash_map_hash_fn hash_fn, hash_map_keyeq_fn keyeq_fn){
-    if (!map) return;
-    if (hash_fn) map->hash_fn = hash_fn;
-    if (keyeq_fn) map->keyeq_fn = keyeq_fn;
+bool hash_map_set_hash(hash_map_t* map, hash_map_hash_fn hash_fn, hash_map_keyeq_fn keyeq_fn){
+    if (!map || map->size || (!hash_fn && keyeq_fn)) return false;
+    map->hash_fn = hash_fn ? hash_fn : hash_map_fnv1a64;
+    map->keyeq_fn = keyeq_fn;
+    return true;
 }
 
 void hash_map_set_value_dispose(hash_map_t* map, void (*dispose_fn)(void*)){
@@ -108,7 +87,8 @@ void hash_map_set_value_dispose(hash_map_t* map, void (*dispose_fn)(void*)){
 }
 
 static int chm_resize(hash_map_t* map, uint64_t new_capacity){
-    uint64_t ncap = chm_next_pow2(new_capacity);
+    uint64_t ncap = next_pow2_u64(new_capacity);
+    if (!ncap || ncap > (size_t)-1 / sizeof(hash_map_entry_t*)) return 0;
     hash_map_entry_t** nb = (hash_map_entry_t**)chm_alloc(map, (uint64_t)sizeof(hash_map_entry_t*)*ncap);
     if (!nb) return 0;
 
@@ -132,21 +112,22 @@ static int chm_resize(hash_map_t* map, uint64_t new_capacity){
 }
 
 int hash_map_put(hash_map_t* map, const void* key, uint64_t key_len, void* value){
-    if (!map) return -1;
+    if (!map || (!key && key_len)) return -1;
 
-    if (map->size >= map->resize_threshold){
-        if (!chm_resize(map, map->capacity << 1)) return -1;
-    }
     uint64_t h = map->hash_fn(key,key_len);
     uint64_t idx = h & (map->capacity-1);
     hash_map_entry_t* e = map->buckets[idx];
 
     while(e){
-        if(e->hash == h && map->keyeq_fn(e->key, e->key_len, key, key_len)){
+        if(e->hash == h && chm_key_equals(map, e->key, e->key_len, key, key_len)){
             e->value = value;
             return 0;
         }
         e = e->next;
+    }
+    if (map->size >= map->resize_threshold){
+        if (map->capacity > UINT64_MAX / 2 || !chm_resize(map, map->capacity << 1)) return -1;
+        idx = h & (map->capacity-1);
     }
     hash_map_entry_t* ne = (hash_map_entry_t*)chm_alloc(map, (uint64_t)sizeof(hash_map_entry_t));
     if (!ne) return -1;
@@ -176,14 +157,14 @@ int hash_map_put_dictionary(hash_map_t* map, const char* str, void* value){
 }
 
 void* hash_map_get(const hash_map_t* map, const void* key, uint64_t key_len){
-    if (!map) return 0;
+    if (!map || (!key && key_len)) return 0;
 
     uint64_t h = map->hash_fn(key,key_len);
     uint64_t idx = h & (map->capacity-1);
     hash_map_entry_t* e = map->buckets[idx];
 
     while(e){
-        if(e->hash == h && map->keyeq_fn(e->key, e->key_len, key, key_len)) return e->value;
+        if(e->hash == h && chm_key_equals(map, e->key, e->key_len, key, key_len)) return e->value;
         e = e->next;
     }
     return 0;
@@ -194,7 +175,7 @@ void* hash_map_get_dictionary(const hash_map_t *map, const char *str){
 }
 
 bool hash_map_remove(hash_map_t* map, const void* key, uint64_t key_len, void** out_value){
-    if (!map) return false;
+    if (!map || (!key && key_len)) return false;
 
     uint64_t h = map->hash_fn(key, key_len);
     uint64_t idx = h & (map->capacity-1);
@@ -202,7 +183,7 @@ bool hash_map_remove(hash_map_t* map, const void* key, uint64_t key_len, void** 
     hash_map_entry_t* prev = 0;
 
     while(e){
-        if (e->hash == h && map->keyeq_fn(e->key, e->key_len, key, key_len)) {
+        if (e->hash == h && chm_key_equals(map, e->key, e->key_len, key, key_len)) {
             if (prev) prev->next = e->next;
             else map->buckets[idx] = e->next;
 
@@ -226,6 +207,7 @@ void hash_map_empty(hash_map_t* map){
 
     for (uint64_t i = 0; i < map->capacity; i++){
         hash_map_entry_t* e = map->buckets[i];
+        map->buckets[i] = 0;
         while(e){
             hash_map_entry_t* next = e->next;
             if (e->key_len>0 && e->key) chm_free(map, e->key);

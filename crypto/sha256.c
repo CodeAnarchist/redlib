@@ -2,6 +2,7 @@
 #include "std/memory.h"
 
 //TODO these macros could be generalized to support SHA512/384 as well
+//TODO Arm Cortex-A76 (raspi 5) has builtin SHA256 instructions
 #define SHA256_ROTR(x, n) (((x) >> (n)) | ((x) << (32 - (n))))
 #define SHA256_CH(x, y, z) (((x) & (y)) ^ (~(x) & (z)))
 #define SHA256_MAJ(x, y, z) (((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))

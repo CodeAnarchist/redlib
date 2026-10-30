@@ -8,6 +8,8 @@
 extern "C" {
 #endif
 
+#define offsetof(type, member) __builtin_offsetof(type, member)
+ 
 #define bswap16(v) __builtin_bswap16((uint16_t)(v))
 #define bswap32(v) __builtin_bswap32((uint32_t)(v))
 #define bswap64(v) __builtin_bswap64((uint64_t)(v))

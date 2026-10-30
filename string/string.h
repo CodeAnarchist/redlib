@@ -109,7 +109,10 @@ const char* seek_to(const char *string, char character);
 char* strncpy(char* dst, const char* src, size_t cap);
 bool parse_uint32_dec(const char *s, uint32_t *out);
 bool parse_uint32_dec_exact(const char *s, uint32_t *out);
+bool parse_uint32_dec_len(const char *s, uint32_t len, uint32_t* out);
+bool parse_uint64_dec_len(const char *s, uint32_t len, uint64_t* out);
 char* strcasestr(const char* haystack, const char* needle);
+char* strpbrk(const char* s, const char* accept);
 
 string string_replace_character(char* original, char symbol, char *value);
 

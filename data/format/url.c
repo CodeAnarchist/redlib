@@ -1,16 +1,9 @@
 #include "url.h"
+#include "std/memory.h"
 
 uint32_t url_path_len(string value) {
     if (!value.data || !value.length) return 0;
-
-    uint32_t len = value.length;
-    int32_t query = str_has_char(value.data, len, '?');
-    if (query >= 0) len = (uint32_t)query;
-
-    int32_t fragment = str_has_char(value.data, len, '#');
-    if (fragment >= 0) len = (uint32_t)fragment;
-
-    return len;
+    return (uint32_t)memcspn(value.data, value.length, "?#", 2);
 }
 
 ParsedURL parse_url(const char *buf, uint32_t len) {
@@ -80,14 +73,7 @@ ParsedURL parse_url(const char *buf, uint32_t len) {
                 p++;
                 if (p >= auth_end) return (ParsedURL){0};
                 uint32_t port = 0;
-                while (p < auth_end) {
-                    char d = buf[p];
-                    if (!is_digit(d)) return (ParsedURL){0};
-
-                    port = port * 10 + (uint32_t)(d - '0');
-                    if (port > 65535) return (ParsedURL){0};
-                    p++;
-                }
+                if (!parse_uint32_dec_len(buf + p, auth_end - p, &port) || port > 65535) return (ParsedURL){0};
                 r.port = (uint16_t)port;
             } else if (p != auth_end) return (ParsedURL){0};
         } else {
@@ -102,14 +88,7 @@ ParsedURL parse_url(const char *buf, uint32_t len) {
                 p++;
                 if (p >= auth_end) return (ParsedURL){0};
                 uint32_t port = 0;
-                while (p < auth_end) {
-                    char d = buf[p];
-                    if (!is_digit(d)) return (ParsedURL){0};
-
-                    port = port * 10 + (uint32_t)(d -'0');
-                    if (port > 65535) return (ParsedURL){0};
-                    p++;
-                }
+                if (!parse_uint32_dec_len(buf + p, auth_end - p, &port) || port > 65535) return (ParsedURL){0};
                 r.port = (uint16_t)port;
             }
         }
@@ -157,7 +136,7 @@ ParsedURL parse_url(const char *buf, uint32_t len) {
 }
 
 string url_request_path(const ParsedURL *url, const string *base_path) {
-    string out = string_repeat('\0', 0);
+    string out = (string){0};
     if (!url || !url->ok) return out;
 
     const char *path = (const char*)url->path.ptr;
@@ -181,7 +160,8 @@ string url_request_path(const ParsedURL *url, const string *base_path) {
         if (slash) string_append_bytes(&out, base, slash);
         else string_append_bytes(&out, "/", 1);
         string_append_bytes(&out, path, path_len);
-    } else if (url->query.ptr && base_len) {
+    } else if (url->host.ptr) string_append_bytes(&out, "/", 1);
+    else if (url->query.ptr && base_len) {
         uint32_t base_end = base_len;
         for (uint32_t i = 0; i < base_end; i++) {
             char c = base[i];

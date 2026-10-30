@@ -58,6 +58,7 @@ typedef enum {
     SOCK_OPT_TCP_DSACK = 1u << 23,
     //SOCK_OPT_TCP_PACING = 1u << 24,
     //SOCK_OPT_MAX_PACING_RATE = 1u << 25,
+    SOCK_OPT_PACKET_TRUNK = 1u << 26,
 } SockOptFlags;
 
 typedef enum {
@@ -100,6 +101,7 @@ typedef enum {
     SOCK_GET_OPT_TCP_SACK,
     SOCK_GET_OPT_TCP_DSACK,
     SOCK_GET_TCP_URGENT_REMAINING,
+    SOCK_GET_OPT_PACKET_TRUNK,
     //SOCK_GET_OPT_TCP_PACING,
     //SOCK_GET_OPT_MAX_PACING_RATE
 } SocketGetOpt;

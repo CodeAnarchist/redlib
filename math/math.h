@@ -10,6 +10,19 @@ extern "C" {
 #define INFINITY __builtin_inff()
 #endif
 
+static inline uint64_t next_pow2_u64(uint64_t x) {
+    if (x <= 1) return 1;
+    if (x > (1ULL << 63)) return 0;
+    x--;
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+    x |= x >> 32;
+    return x + 1;
+}
+
 static inline i64 powi(i64 n, i64 e){
     if (e == 1) return n;
     if (e == 2) return n * n;

@@ -33,7 +33,7 @@ hash_map_t* hash_map_create(uint64_t initial_capacity);
 hash_map_t* hash_map_create_alloc(uint64_t initial_capacity, void* (*alloc)(size_t size),void (*mfree)(void* ptr));
 void hash_map_destroy(hash_map_t* map);
 void hash_map_set_allocator(hash_map_t* map, void* (*alloc)(size_t), void (*dealloc)(void*));
-void hash_map_set_hash(hash_map_t* map, hash_map_hash_fn hash_fn, hash_map_keyeq_fn keyeq_fn);
+bool hash_map_set_hash(hash_map_t* map, hash_map_hash_fn hash_fn, hash_map_keyeq_fn keyeq_fn);
 void hash_map_set_value_dispose(hash_map_t* map, void (*dispose_fn)(void*));
 int hash_map_put(hash_map_t* map, const void* key, uint64_t key_len, void* value);
 int hash_map_put_dictionary(hash_map_t* map, const char* key, void* value);
