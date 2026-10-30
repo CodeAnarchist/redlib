@@ -181,46 +181,29 @@ void* memset32(void* dest, uint32_t val, size_t count) {
 
 void* memchr(const void* ptr, int value, size_t count) {
     if (!ptr) return 0;
-    //ex ptr=0x::1003, val=0x5A, count=45
-    //uint8_t data[45] = {0x11, 0x22, 0x33, 0x44, 0x55,
-    //0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08...
-    //0xDE, 0xAD, 0xBE, 0xEF, 0x12, 0x34, 0x56, 0x78,
-    //0xC1, 0xC2, 0xC3, 0x5A, 0xC5, 0xC6, 0xC7, 0xC8
-    //};
     const uint8_t* p = ptr;
     uint8_t c = (uint8_t)value;
 
-    if (count && *p == c) return (void*)p;//check 0x11 e 0x5A, after align ptr=0x1008, count=40
+    if (count && *p == c) return (void*)p;
     while (((uintptr_t)p & 7) && count > 0) { 
         if (*p == c) return (void*)p;
         p++;
         count--;
     }
 
-    //i0 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08
-    //w0 0x0807060504030201
-    //prop 0x5A5A5A5A5A5A5A5A
-    //x0 0x525D5C5F5E59585B, 0x515C5B5E5D58575A z0 0x0000000000000000
-    //in 0xC1, 0xC2, 0xC3, 0x5A, 0xC5, 0xC6, 0xC7, 0xC8
-    //w 0xC8C7C6C55AC3C2C1, prop 0x5A5A5A5A5A5A5A5A
-    //x 0x929D9C9F0099989B, z 0x0000000080000000 -- __builtin_ctzll(z) = 31, ret &data[40]
     if (count >= 8) {
         uint64_t pattern = c * 0x0101010101010101ULL;
-        //repeat target across the word
 
         const uint64_t ones = 0x0101010101010101ULL;
         const uint64_t highs = 0x8080808080808080ULL;
         const uint64_t* p64 = (const uint64_t*)MEM_ASSUME_ALIGNED(p, 8);
 
-        while (count >= 32) { //32byte per i (4*64bit words)
-            uint64_t x0 = p64[0] ^ pattern; //00101101
+        while (count >= 32) { 
+            uint64_t x0 = p64[0] ^ pattern;
             uint64_t x1 = p64[1] ^ pattern;
             uint64_t x2 = p64[2] ^ pattern;
             uint64_t x3 = p64[3] ^ pattern;
 
-            //check for 0x00 bytes
-            //uint64_t tmp = (x0 - ones) & ~x0; //00101101-00000001; 00101100 v 11010010 = 00000000
-            //uint64_t z0 = tmp & highs; //11010010 v highs = 00000000
             uint64_t z0 = (x0 - ones) & ~x0 & highs;
             uint64_t z1 = (x1 - ones) & ~x1 & highs;
             uint64_t z2 = (x2 - ones) & ~x2 & highs;
