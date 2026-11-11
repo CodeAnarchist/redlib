@@ -68,7 +68,7 @@ extern int64_t socket_send(socket_handle_t handle, void *packet, size_t size);
 extern int64_t socket_send_to(socket_handle_t handle, const net_l4_endpoint* dst, void *packet, size_t size);
 extern int64_t socket_receive(socket_handle_t handle, void *packet, size_t size, net_l4_endpoint* out_src);
 extern int32_t socket_close(socket_handle_t handle);
-extern int32_t socket_set_option(socket_handle_t handle, int32_t opt, const void* value, uint32_t len);
+extern int32_t socket_set_option(socket_handle_t handle, SockOptFlags opt, const void* value, uint32_t len);
 extern int32_t socket_get_option(socket_handle_t handle, int32_t opt, void* value, uint32_t* len);
 
 extern FS_RESULT openf(const char* path, file* descriptor);
